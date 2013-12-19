@@ -1,5 +1,5 @@
 _Module = require '../core/_Module'
-MT = require '../tools/MathTools'
+{sign} = require '../tools/MathTools'
 
 module.exports = class Source
 
@@ -23,24 +23,20 @@ module.exports = class Source
 
 		@c = n * Source.c
 
-	update: (dt, particle) ->
+	update: (dt, data, offset) ->
 
-		p = particle.position.v
+		x = data[offset]
+		y = data[offset + 1]
 
-		dx = @x - p[0]
-		dy = @y - p[1]
-		sx = MT.sign dx
-		sy = MT.sign dy
-		dx2 = Math.pow dx, 2
-		dy2 = Math.pow dy, 2
+		dx = @x - x
+		dy = @y - y
+		dx2 = dx * dx
+		dy2 = dy * dy
 
-		theta = MT.lineSlope @x, @y, p[0], p[1]
+		fx = - sign(dx) * @c * (dx2 + dy2) / (Math.sqrt(1 + (dy / dx) * (dy / dx)))
+		fy = - dy * sign(dy) * fx / dx
 
-		d = dx2 + dy2
+		data[offset + 6] += fx
+		data[offset + 7] += fy
 
-		magnitude = @c * d
-
-		fx = - sx * Math.abs(Math.cos(theta)) * magnitude
-		fy = - sy * Math.abs(Math.sin(theta)) * magnitude
-
-		particle.force.add fx, fy
+		return
